@@ -1,13 +1,51 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>hsinchu-aiot-pole</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Environment, Stage, Float } from '@react-three/drei';
+import { useState } from 'react';
+
+export default function App() {
+  const [isDay, setIsDay] = useState(true);
+
+  return (
+    <div style={{ width: '100vw', height: '100vh', background: isDay ? '#e0e0e0' : '#0a0a0a' }}>
+      <button 
+        onClick={() => setIsDay(!isDay)} 
+        style={{ position: 'absolute', top: 20, left: 20, zIndex: 10, padding: '10px' }}
+      >
+        切換 {isDay ? '夜間' : '白天'} 模式
+      </button>
+      
+      <Canvas shadows camera={{ position: [3, 3, 5], fov: 45 }}>
+        {/* 光照系統 */}
+        <ambientLight intensity={isDay ? 1 : 0.2} />
+        <Environment preset={isDay ? 'city' : 'night'} />
+        
+        <Stage adjustCamera={false}>
+          {/* 燈桿結構 */}
+          <group>
+            {/* 桿身：金屬物理材質 */}
+            <mesh castShadow>
+              <cylinderGeometry args={[0.12, 0.18, 5, 32]} />
+              <meshPhysicalMaterial 
+                color={isDay ? '#888' : '#222'} 
+                metalness={0.8} 
+                roughness={0.2} 
+              />
+            </mesh>
+            {/* 燈頭：玻璃透視質感 */}
+            <mesh position={[0, 2.8, 0]}>
+              <boxGeometry args={[0.5, 0.6, 0.5]} />
+              <meshPhysicalMaterial 
+                transmission={0.9} 
+                thickness={0.5} 
+                roughness={0.2} 
+              />
+            </mesh>
+          </group>
+        </Stage>
+        
+        {/* 360 度互動控制 */}
+        <OrbitControls makeDefault />
+      </Canvas>
+    </div>
+  );
+}
